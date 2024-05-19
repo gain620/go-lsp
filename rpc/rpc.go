@@ -8,13 +8,13 @@ import (
 	"strconv"
 )
 
+type BaseMessage struct {
+	Method string `json:"method"`
+}
+
 func EncodeMessage(msg any) string {
 	content, _ := json.Marshal(msg)
 	return fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(content), content)
-}
-
-type BaseMessage struct {
-	Method string `json:"method"`
 }
 
 func DecodeMessage(msg []byte) (string, []byte, error) {
@@ -36,4 +36,26 @@ func DecodeMessage(msg []byte) (string, []byte, error) {
 	}
 
 	return baseMsg.Method, content[:contentLength], nil
+}
+
+// type SplitFunc func(data []byte, atEOF bool) (advance int, token []byte, err error)
+func Split(data []byte, _ bool) (advance int, token []byte, err error) {
+	header, content, found := bytes.Cut(data, []byte{'\r', '\n', '\r', '\n'})
+	if !found {
+		return 0, nil, nil
+	}
+
+	// Content-Length: num
+	contentLengthBytes := bytes.TrimPrefix(header, []byte("Content-Length: "))
+	contentLength, err := strconv.Atoi(string(contentLengthBytes))
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if len(content) < contentLength {
+		return 0, nil, nil
+	}
+
+	totalLength := len(header) + contentLength + 4
+	return totalLength, data[:totalLength], nil
 }

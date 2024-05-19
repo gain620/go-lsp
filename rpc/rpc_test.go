@@ -39,17 +39,17 @@ func TestEncodeMessage(t *testing.T) {
 }
 
 func TestDecodeMessage(t *testing.T) {
-	got, content, err := rpc.DecodeMessage([]byte("Content-Length: 15\r\n\r\n{\"Method\":\"hi\"}"))
+	got, content, err := rpc.DecodeMessage([]byte("Content-Length: 17\r\n\r\n{\"Method\":\"text\"}"))
 	length := len(content)
 	if err != nil {
 		t.Fatalf("DecodeMessage() error = %v", err)
 	}
 
-	if length != 15 {
+	if length != 17 {
 		t.Fatalf("DecodeMessage() length = %v, want %v", length, 15)
 	}
 
-	want := "hi"
+	want := "text"
 	if got != want {
 		t.Fatalf("DecodeMessage() = %v, want %v", got, want)
 	}
